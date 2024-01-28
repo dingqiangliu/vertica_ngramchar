@@ -5,6 +5,7 @@ This is a Vertica User Defined Functions (UDF) named NGramCharTokenizer, a chara
 ## Syntax
 
 1. **NGramCharTokenizer** ( text [using parameters minLen=... [, maxLen=...] ] )
+   Get all possible ngrams with lengh range[minLen, maxLen].
 
    ***Parameters:***
    
@@ -13,6 +14,15 @@ This is a Vertica User Defined Functions (UDF) named NGramCharTokenizer, a chara
    * maxLen: int, maximum length of NGram, default is 3.
    * (return): list of NGrams.
 
+2. **SetNGramCharTokenizerParameters** (minLen, maxLen using parameters procOid)
+   Setting configuation of GramCharTokenizer for text index since there is no chance to provide them in CREATE TEXT INDEX statement.
+
+   ***Parameters:***
+   
+   * minLen: int, minimum length of NGram.
+   * maxLen: int, maximum length of NGram.
+   * procOid: string, oid of the specified function, different text index can use different instance of definition with different parameters.
+   * (return): bool, success or failure of setting.
 
 ## Examples
 
