@@ -83,7 +83,6 @@ class NGramCharTokenizer : public TransformFunction
                     {
                         VString &token = output_writer.getStringRef(0);
                         token.copy(str + cacheCharEnd[n], cacheCharEnd[cacheCharCount] - cacheCharEnd[n]);
-                        output_writer.next();
                         
                         // write the remaining arguments to output
                         size_t outputIdx = 1;
@@ -91,6 +90,8 @@ class NGramCharTokenizer : public TransformFunction
                             output_writer.copyFromInput(outputIdx, input_reader, inputIdx);
                             outputIdx++;
                         }
+
+                        output_writer.next();
                     }
                 }
 
@@ -164,12 +165,27 @@ class NGramCharTokenizerFactory : public TransformFunctionFactory
 
         // argument must be a varbinary or varchar, this is the column we tokenize
         size_t idxTextColum = (argCount == 1)?  0: 1;
-        if (!input_types.getColumnType(idxTextColum).isStringType()) {
+        if (!input_types.getColumnType(idxTextColum).isStringType())
             vt_report_error(0, "Argument to tokenizer must be of varchar type.");
-        }
 
         vint len = input_types.getColumnType(idxTextColum).getStringLength();
         output_types.addVarchar((len > 0? len: 1), "token");
+
+        // for additional columns
+        std::vector<size_t> argCols;
+        input_types.getArgumentColumns(argCols);
+        size_t colIdx = 1;
+        for (std::vector<size_t>::iterator currCol = argCols.begin() + 2; currCol < argCols.end(); currCol++) {
+            std::string inputColName = input_types.getColumnName(colIdx + 1);
+            std::stringstream cname;
+            if (inputColName.empty()) {
+                cname << "col" << colIdx;
+            } else {
+                cname << inputColName;
+            }
+            colIdx++;
+            output_types.addArg(input_types.getColumnType(*currCol), cname.str());
+        }
     }
 
 

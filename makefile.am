@@ -28,5 +28,5 @@ clean-local:
 
 # run examples
 run: $(PACKAGE_LIBNAME) install test/test.sql
-	$(VSQL) -f test/test.sql | tee testresult.txt
+	$(VSQL) -e -f test/test.sql | tee testresult.txt
 

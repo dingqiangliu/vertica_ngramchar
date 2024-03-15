@@ -112,10 +112,12 @@ end;
 $$;
 
 drop table if exists test_textindex;
-create table test_textindex(id int primary key, content varchar(20)) order by id segmented by hash(id) all nodes ksafe;
+create table test_textindex(id int primary key, content varchar(20), author varchar(15), no int) order by id segmented by hash(id) all nodes ksafe;
+
+-- simple text index
 create text index test_textindex_index on test_textindex(id, content) stemmer none tokenizer One2TwoNgramTokenizer(varchar(20));
 
-insert into test_textindex values(1, 'ABC');
+insert into test_textindex values(1, 'ABC', 'DQ', 50);
 commit;
 
 
@@ -129,6 +131,19 @@ from (
     select token from test_textindex_index
     ) t;
 
+
+-- text index with additional columns to avoid join
+create text index test_textindex_index_additional on test_textindex(id, content, content, author, no) stemmer none tokenizer One2TwoNgramTokenizer(varchar(20));
+
+select * from test_textindex_index_additional;
+select 
+    error_on_check_false(
+        listagg(token) within group(order by token) = 'A,AB,B,BC,C'
+        , 'text index', 'Case: text index with additional columns', ''
+        ) as "Case: text index with additional columns"
+from (
+    select token from test_textindex_index_additional
+    ) t;
 
 drop text index test_textindex_index;
 drop table if exists test_textindex cascade;
